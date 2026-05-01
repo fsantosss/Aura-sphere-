@@ -1,7 +1,5 @@
 https://github.com/danny-avila/LibreChat
 https://github.com/open-webui/open-webui
-https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web
-https://github.com/mckaywrigley/chatbot-ui
 https://github.com/enricoros/big-AGI
 https://github.com/Chanzhaoyu/chatgpt-web
 https://github.com/ourongxing/chatgpt-vercel

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ParticleSphere } from "@/components/ParticleSphere";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChatMessage as ChatMessageCard } from "@/components/ChatMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { getApiBase, getAuthHeaders } from "@/lib/api";
 import type { AiMode, AiProvider, ChatMessage, ParticleShape, SphereState, VoiceId } from "@/lib/types";
@@ -36,10 +37,44 @@ const STATE_LABELS: Record<SphereState, string> = {
   responding: "Respondendo…",
 };
 
+type PromptPreset = {
+  id: string;
+  label: string;
+  description: string;
+  systemPrompt: string;
+};
+
 const AI_PROVIDER_OPTIONS: { id: AiProvider; label: string }[] = [
   { id: "lovable", label: "Lovable" },
   { id: "anthropic", label: "Anthropic / Claude" },
   { id: "openai", label: "OpenAI" },
+];
+
+const PROMPT_PRESETS: PromptPreset[] = [
+  {
+    id: "assistant",
+    label: "Assistente",
+    description: "Responda de forma clara, curta e útil em português.",
+    systemPrompt: "Você é um assistente útil e educado. Responda de forma clara e objetiva em português.",
+  },
+  {
+    id: "developer",
+    label: "Desenvolvedor",
+    description: "Foque em código, explicações técnicas e exemplos.",
+    systemPrompt: "Você é um experiente desenvolvedor que ajuda com código, debugging e explicações técnicas.",
+  },
+  {
+    id: "brainstorm",
+    label: "Criativo",
+    description: "Faça brainstorming e gere ideias para projetos.",
+    systemPrompt: "Você é um assistente criativo que propõe ideias de projetos, sugestões e soluções inovadoras.",
+  },
+  {
+    id: "memory",
+    label: "Memória",
+    description: "Mantenha contexto e lembre-se de preferências do usuário.",
+    systemPrompt: "Você mantém o contexto e lembra preferências do usuário ao responder, usando o histórico para personalizar a resposta.",
+  },
 ];
 
 const API_BASE = getApiBase();
@@ -63,6 +98,7 @@ export default function Chat({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [provider, setProvider] = useState<AiProvider>("lovable");
+  const [presetId, setPresetId] = useState<string>(PROMPT_PRESETS[0].id);
   const [state, setState] = useState<SphereState>("idle");
   const [shape, setShape] = useState<ParticleShape>("sphere");
   const [recording, setRecording] = useState(false);
@@ -230,6 +266,25 @@ export default function Chat({
     toast.success("Conversa limpa com sucesso.");
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      toast.success("Mensagem copiada para a área de transferência.");
+    } catch (error) {
+      console.error("Copy error", error);
+      toast.error("Não foi possível copiar a mensagem.");
+    }
+  };
+
   const sendText = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
@@ -253,6 +308,12 @@ export default function Chat({
     setState("thinking");
 
     try {
+      const selectedPreset = PROMPT_PRESETS.find((preset) => preset.id === presetId);
+      const systemMessage = selectedPreset
+        ? { role: "system" as const, content: selectedPreset.systemPrompt }
+        : null;
+      const messagesForApi = systemMessage ? [systemMessage, ...next] : next;
+
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
       const resp = await fetch(url, {
         method: "POST",
@@ -263,7 +324,7 @@ export default function Chat({
         body: JSON.stringify({
           aiName,
           provider,
-          messages: next.map(({ role, content }) => ({ role, content })),
+          messages: messagesForApi.map(({ role, content }) => ({ role, content })),
         }),
       });
 
@@ -502,6 +563,35 @@ export default function Chat({
         ) : null}
       </section>
 
+      <section className="border-b border-border/50 px-4 py-3 bg-background/80 backdrop-blur-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Preset de prompt</p>
+              <p className="text-sm text-muted-foreground">Escolha um estilo de resposta rápido.</p>
+            </div>
+            <div className="w-full max-w-xs">
+              <Select value={presetId} onValueChange={(value) => setPresetId(value)}>
+                <SelectTrigger className="w-full h-10">
+                  <SelectValue placeholder="Selecionar preset" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROMPT_PRESETS.map((preset) => (
+                    <SelectItem key={preset.id} value={preset.id}>
+                      <div className="flex flex-col text-left">
+                        <span>{preset.label}</span>
+                        <span className="text-xs text-muted-foreground">{preset.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="text-xs text-muted-foreground">Preset ativo: {PROMPT_PRESETS.find((preset) => preset.id === presetId)?.label}</div>
+        </div>
+      </section>
+
       {/* Sphere */}
       <section className="relative flex flex-col items-center justify-center px-4 pt-2 pb-1">
         <div className="w-full max-w-sm aspect-square max-h-[42vh]">
@@ -528,26 +618,11 @@ export default function Chat({
           </p>
         )}
         {messages.map((m, i) => (
-          <div
+          <ChatMessageCard
             key={m.id ?? i}
-            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
-          >
-            <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm leading-relaxed ${
-                m.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-br-sm"
-                  : "bg-secondary text-secondary-foreground rounded-bl-sm"
-              }`}
-            >
-              {m.role === "assistant" ? (
-                <div className="prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_pre]:my-2">
-                  <ReactMarkdown>{m.content}</ReactMarkdown>
-                </div>
-              ) : (
-                <span className="whitespace-pre-wrap">{m.content}</span>
-              )}
-            </div>
-          </div>
+            message={m}
+            onCopy={() => copyToClipboard(m.content)}
+          />
         ))}
       </section>
 
