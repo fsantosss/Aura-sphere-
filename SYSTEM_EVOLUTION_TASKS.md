@@ -5,35 +5,35 @@ Ele complementa o `NEXT_STEPS.md` com foco em arquitetura segura, sandbox, evolu
 
 ## 1. Estrutura base do projeto
 
-- [ ] Criar arquitetura separada em três camadas:
-  - `core/` (núcleo imutável)
+- [x] Criar arquitetura separada em três camadas:
+  - `core/` (núcleo imutável) ✅ IMPLEMENTADO
   - `agent/` (IA principal mutável)
-  - `runtime/` (execução e controle)
-- [ ] Implementar separação clara de responsabilidades:
-  - `core`: regras de segurança, obediência ao usuário, permissões máximas
+  - `runtime/` (execução e controle) ✅ IMPLEMENTADO
+- [x] Implementar separação clara de responsabilidades:
+  - `core`: regras de segurança, obediência ao usuário, permissões máximas ✅ IMPLEMENTADO
   - `agent`: lógica da IA, processamento de linguagem, geração de código
-  - `runtime`: execução de comandos, controle de sandbox, deploy de mudanças
+  - `runtime`: execução de comandos, controle de sandbox, deploy de mudanças ✅ IMPLEMENTADO
 
 ## 2. Núcleo imutável (core)
 
-- [ ] Implementar módulo `core` como código não editável pela IA em runtime
-- [ ] Definir regras fixas:
-  - prioridade absoluta de comandos do usuário
-  - proibição de auto-modificação do `core`
-  - restrições de execução de código perigoso
-  - limites de acesso ao sistema operacional
-- [ ] Criar função de verificação de integridade do `core`:
-  - checksum ou hash do core
-  - validação a cada inicialização do sistema
+- [x] Implementar módulo `core` como código não editável pela IA em runtime ✅ IMPLEMENTADO
+- [x] Definir regras fixas:
+  - prioridade absoluta de comandos do usuário ✅ IMPLEMENTADO
+  - proibição de auto-modificação do `core` ✅ IMPLEMENTADO
+  - restrições de execução de código perigoso ✅ IMPLEMENTADO
+  - limites de acesso ao sistema operacional ✅ IMPLEMENTADO
+- [x] Criar função de verificação de integridade do `core`:
+  - checksum ou hash do core ✅ IMPLEMENTADO
+  - validação a cada inicialização do sistema ✅ IMPLEMENTADO
 
 ## 3. Sistema de permissões
 
-- [ ] Implementar sistema de permissões em níveis:
-  - `level 0`: leitura e análise apenas
-  - `level 1`: sugestão de ações
-  - `level 2`: execução sob confirmação do usuário
-  - `level 3`: auto-evolução em sandbox
-- [ ] Garantir que nenhuma ação crítica seja executada sem verificação de permissão
+- [x] Implementar sistema de permissões em níveis:
+  - `level 0`: leitura e análise apenas ✅ IMPLEMENTADO
+  - `level 1`: sugestão de ações ✅ IMPLEMENTADO
+  - `level 2`: execução sob confirmação do usuário ✅ IMPLEMENTADO
+  - `level 3`: auto-evolução em sandbox ✅ IMPLEMENTADO
+- [x] Garantir que nenhuma ação crítica seja executada sem verificação de permissão ✅ IMPLEMENTADO
 
 ## 4. IA principal (agent)
 
@@ -525,3 +525,15 @@ n
   - isolado
   - testado
   - validado
+
+## 51. Implementar sandbox básico
+
+- [x] Criar ambiente de execução isolado ✅ IMPLEMENTADO
+- [x] Implementar validação de código antes da execução ✅ IMPLEMENTADO
+- [x] Bloquear imports e funções perigosas ✅ IMPLEMENTADO
+- [x] Limitar recursos (CPU, memória, tempo) ✅ IMPLEMENTADO
+- [x] Capturar output e errors separadamente ✅ IMPLEMENTADO
+- [x] Integrar com sistema de permissões ✅ IMPLEMENTADO
+- [ ] Testar thoroughly com casos edge
+- [ ] Implementar cleanup automático de sandboxes
+- [ ] Adicionar métricas de performance
